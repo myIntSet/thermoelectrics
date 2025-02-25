@@ -1,17 +1,18 @@
 import sys
 sys.path.append('/../QmeQ/qmeq/')
-#sys.path.append('../qmeq/')
+import warnings
 import qmeq
 import numpy as np
 
-lamdas = np.linspace(0,1,12)
 
-def run_interpolation(epsilons, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_L, T_R):
-    
-    #--SETUP: ---------------------------------------------------------------------------------
+
+def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_L, T_R):
 
     if T_L < T_R:
         raise SystemExit("Not my convention! (T_L < T_R)")
+    elif T_L > T_R:
+        T_COLD = T_R
+        T_HOT = T_L
     elif T_L == T_R:
         raise SystemExit("Not a heat engine (T_L = T_R)")
     #lägga till fler checkar här!
@@ -42,7 +43,7 @@ def run_interpolation(epsilons, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_
                             dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
             system.solve()
             if system.current_noise[1] < 0:
-                print(f"Warning! Negative noise! {system.current_noise[1]} for lambda: {lmda} and epsilon: {eps}")
+                warnings.warn(f"Warning! Negative noise! {system.current_noise[1]} for lambda: {lmda} and epsilon: {eps}")
             I[l_idx, e_idx] = system.current_noise[0]
             I_var[l_idx, e_idx] = system.current_noise[1]
             J_QH[l_idx, e_idx] = system.heat_current[0]+system.heat_current[1]
@@ -53,7 +54,15 @@ def run_interpolation(epsilons, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_
     I_var[np.isnan(I)] = np.nan
     J_QH[np.isnan(I)] = np.nan
 
-    return I, I_var, J_QH
+    #Calculations of P, efficiency, sigma and TUR
+
+    P = I*V_B
+    eff_carnot = 1-(T_COLD/T_HOT)
+    eff = P/J_QH
+    sigma = P*(1/T_COLD)*(eff_carnot-eff)/eff
+    TUR = I_var*sigma/(I**2)
+
+    return I, I_var, J_QH, P, eff, sigma, TUR
 
 if __name__ == "__main__":
     epsilons = np.linspace(-500, 500, 10)
