@@ -64,6 +64,8 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
 
     return I, I_var, J_QH, P, eff, sigma, TUR
 
+
+
 if __name__ == "__main__":
     epsilons = np.linspace(-500, 500, 10)
     omega = 0.1
