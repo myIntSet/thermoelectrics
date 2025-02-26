@@ -45,7 +45,7 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
             i = system.current_noise[0]
             i_var = system.current_noise[1]
             j_qh = system.heat_current[0]+system.heat_current[1]
-            if system.current_noise[1] < 0:
+            if i_var < 0 and np.abs(i_var) > 1e-16 and np.abs(i) > 1e-16:
                 warnings.warn(f"Warning! Negative noise! {i_var} for lambda: {lmda} and epsilon: {eps}\n (I = {i}, J_QH = {j_qh})")
             I[l_idx, e_idx] = i
             I_var[l_idx, e_idx] = i_var
@@ -53,7 +53,8 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
 
 
     #====================Pruning========================
-    I[(I < 0) | (J_QH < 0)] = np.nan
+    #I[(I < 0) | (J_QH < 0)] = np.nan
+    I[(I < 0) | (J_QH < 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
     I_var[np.isnan(I)] = np.nan
     J_QH[np.isnan(I)] = np.nan
 
