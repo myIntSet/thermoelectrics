@@ -42,11 +42,14 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
                             mulst=mulst, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):lmda*tL, (1,3):lmda*tL, (2,0):lmda*tR, (3,1):lmda*tR},
                             dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
             system.solve()
+            i = system.current_noise[0]
+            i_var = system.current_noise[1]
+            j_qh = system.heat_current[0]+system.heat_current[1]
             if system.current_noise[1] < 0:
-                warnings.warn(f"Warning! Negative noise! {system.current_noise[1]} for lambda: {lmda} and epsilon: {eps}")
-            I[l_idx, e_idx] = system.current_noise[0]
-            I_var[l_idx, e_idx] = system.current_noise[1]
-            J_QH[l_idx, e_idx] = system.heat_current[0]+system.heat_current[1]
+                warnings.warn(f"Warning! Negative noise! {i_var} for lambda: {lmda} and epsilon: {eps}\n (I = {i}, J_QH = {j_qh})")
+            I[l_idx, e_idx] = i
+            I_var[l_idx, e_idx] = i_var
+            J_QH[l_idx, e_idx] = j_qh
 
 
     #====================Pruning========================
@@ -55,7 +58,6 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
     J_QH[np.isnan(I)] = np.nan
 
     #Calculations of P, efficiency, sigma and TUR
-
     P = I*V_B
     eff_carnot = 1-(T_COLD/T_HOT)
     eff = P/J_QH
