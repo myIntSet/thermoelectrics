@@ -2,15 +2,24 @@ import numpy as np
 import pandas as pd
 import os
 
-def save_file(I, I_var, J_QH, P, eff, sigma, TUR, epsilons, lamdas, INPUT):
+#epsilons_R should be of the same length as epsilons_L
+def save_file(I, I_var, J_QH, P, eff, sigma, TUR, epsilons, lamdas, INPUT, epsilons_R=None):
 
     # Flatten the arrays
-    Epsilon, Lamda = np.meshgrid(epsilons, lamdas)    # Create a 2D grid
-    arrays = [Epsilon, Lamda, TUR, I, I_var, J_QH, P, eff, sigma]
+    Epsilon_L, Lamda = np.meshgrid(epsilons, lamdas)    # Create a 2D grid
+
+    if epsilons_R:
+        Epsilon_R, _ = np.meshgrid(epsilons_R, lamdas)
+        print("Found epsilon R!")
+    else:
+        Epsilon_R = Epsilon_L
+        print("No epsilon R!")
+
+    arrays = [Epsilon_L, Epsilon_R, Lamda, TUR, I, I_var, J_QH, P, eff, sigma]
     flattened_data = [array.flatten() for array in arrays]
 
     # Create a DataFrame for the results
-    df_new = pd.DataFrame(np.column_stack(flattened_data), columns=['epsilon', 'lambda', 'TUR', 'I', 'I_var', 'J_QH', 'P', 'eff', 'sigma'])
+    df_new = pd.DataFrame(np.column_stack(flattened_data), columns=['epsilon_L', 'epsilon_R', 'lambda', 'TUR', 'I', 'I_var', 'J_QH', 'P', 'eff', 'sigma'])
 
     # Add the parameters as new columns (this will be the same for all rows)
     for param, value in INPUT.items():
