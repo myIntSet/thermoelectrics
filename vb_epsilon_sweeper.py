@@ -53,12 +53,22 @@ def run_sweep(VBs, epsilons, omega, u_intra, u_inter, gammaL, gammaR, T_L, T_R):
             P_0[v_idx, e_idx] = rho[0]
 
 
-    #====================Pruning========================
+    #====================Pruning==========<----WRONG!!!!!
     #Puting negative currents, heatcurrents and small negative I_var to zero
     #I[(I < 0) | (J_QH < 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan 
     #I[(I < 0) | (J_QH < 0)] = np.nan
     #I_var[np.isnan(I)] = np.nan
     #J_QH[np.isnan(I)] = np.nan
+    '''
+    #====================Pruning==============<-------------PROPER TEMPLATE!!!!
+    #Remove values that won't generate a TUR (not a heat engine, or numerical negative noise issue)
+    if V_B > 0:
+        I[(I < 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
+    elif V_B < 0:
+        I[(I > 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
+    I_var[np.isnan(I)] = np.nan
+    J_QH[np.isnan(I)] = np.nan
+    '''
 
     #Calculations of efficiency, sigma and TUR
     #eff_carnot = 1-(T_COLD/T_HOT)
