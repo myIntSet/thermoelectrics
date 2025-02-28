@@ -38,7 +38,7 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
 
     for l_idx, lmda in enumerate(lamdas):
         for e_idx, eps in enumerate(epsilons):
-            system = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps, (3,3):eps, (0,2):(1-lmda)*omega, (1,3):(1-lmda)*omega}, coulomb=U, nleads=nleads,
+            system = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps+3, (3,3):eps+3, (0,2):(1-lmda)*omega, (1,3):(1-lmda)*omega}, coulomb=U, nleads=nleads,
                             mulst=mulst, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):lmda*tL, (1,3):lmda*tL, (2,0):lmda*tR, (3,1):lmda*tR},
                             dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
             system.solve()
@@ -51,13 +51,17 @@ def run_interpolation(epsilons, lamdas, omega, u_intra, u_inter, V_B, gammaL, ga
             I_var[l_idx, e_idx] = i_var
             J_QH[l_idx, e_idx] = j_qh
 
-
+    
     #====================Pruning========================
-    #I[(I < 0) | (J_QH < 0)] = np.nan
-    I[(I < 0) | (J_QH < 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
+    #Remove values that won't generate a TUR (not a heat engine, or numerical negative noise issue)
+    if V_B > 0:
+        I[(I < 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
+    elif V_B < 0:
+        I[(I > 0) | ((I_var < 0) & (np.abs(I_var) < 1e-16))] = np.nan
     I_var[np.isnan(I)] = np.nan
     J_QH[np.isnan(I)] = np.nan
-
+    
+    
     #Calculations of P, efficiency, sigma and TUR
     P = I*V_B
     eff_carnot = 1-(T_COLD/T_HOT)
