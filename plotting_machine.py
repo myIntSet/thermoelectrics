@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR):
 
     def plot_single(fig, axes, i, j, Y, title):
+        if title == 'TUR':
+            Y = np.ma.masked_where(Y >= 2, Y)
+        elif title == 'P':
+            Y = np.ma.masked_where(Y <= 0, Y)
         img = axes[i,j].imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower')
         fig.colorbar(img, ax=axes[i,j])
         axes[i,j].set_title(title)
