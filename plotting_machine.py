@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 
-def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR):
+def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR, title):
 
     def plot_single(fig, axes, i, j, Y, title):
-        if title == 'TUR':
+        if title == 'TUR < 2':
             Y = np.ma.masked_where(Y >= 2, Y)
-        elif title == 'P':
+        elif title == 'P > 0':
             Y = np.ma.masked_where(Y <= 0, Y)
         img = axes[i,j].imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower')
         fig.colorbar(img, ax=axes[i,j])
@@ -19,7 +19,7 @@ def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR):
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(20, 8))
 
     values = [I, I_var, P, J_QH, sigma, TUR]
-    titles = ['Current', 'Noise', 'P', 'Heat current', 'sigma', 'TUR']
+    titles = ['Current', 'Noise', 'P > 0', 'Heat current', 'sigma', 'TUR < 2']
     plt_idx = 0
     for i in range(0,2):
         for j in range(0,3):
@@ -27,7 +27,7 @@ def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR):
             plt_idx += 1
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.suptitle("Zoomed in region", fontsize=16, fontweight='bold')
+    fig.suptitle(title, fontsize=16, fontweight='bold')
     plt.show()
 
 def plot_one(Y):
