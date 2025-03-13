@@ -100,3 +100,43 @@ def plot_inter(lamdas, I, I_var, P, J_QH, sigma, TUR, title):
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     fig.suptitle(title, fontsize=16, fontweight='bold')
     plt.show()
+
+#"ys should be list/tuple with two entrys and y_names containes the corresponding names"
+def plot_two(x, x_name, ys, y_names, y_titles, title):
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 8))
+
+    for i in range(0,2):
+        axes[i].plot(x, ys[i], label=f"{y_names[i]}")
+        axes[i].set_xlabel(x_name)
+        axes[i].set_ylabel(y_names[i])
+        axes[i].set_title(y_titles[i])
+        axes[i].set_ylim(1.96, 2.05) #<------------------Hard coded line, remove when wanting other behaviour!
+
+    
+    fig.suptitle(title, fontsize=16, fontweight='bold')
+    plt.show()
+
+def plot_minimal_TUR_points(x, y):
+    indices = np.arange(len(x))  # Indices for colormap
+
+    # Create a figure
+    fig, ax = plt.subplots()
+
+    # Scatter plot with color gradient
+    sc = ax.scatter(x, y, c=indices, cmap='viridis', edgecolor='black', s=50, zorder=3)
+
+    # Connect points with a line
+    ax.plot(x, y, color='gray', linestyle='dashed', alpha=0.7, zorder=2)
+
+    # Add colorbar to show order
+    cbar = plt.colorbar(sc, ax=ax)
+    cbar.set_label(r"<-- lower $\lambda$                        higher $\lambda$ -->")
+    cbar.set_ticks([])  # Remove numbers
+
+    # Labels
+    ax.set_xlabel(r"$\epsilon$")
+    ax.set_ylabel("$V_B$")
+    ax.set_title(r"How the minimal TUR points change with $\lambda$")
+
+    plt.show()
