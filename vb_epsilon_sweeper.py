@@ -119,3 +119,45 @@ def run_lamda_sweep(VBs, epsilons, lmda, omega, u_intra, u_inter, gammaL, gammaR
             P[v_idx, e_idx] = i*vb
 
     return I, I_var, J_QH, P
+
+#Special sweep: Doesn't turn of omega, only turns on extra gammaL and gammaR (creates hybrid between serial and parallel dots)
+def run_special_sweep(VBs, epsilons, lmda, omega, u_intra, u_inter, gammaL, gammaR, T_L, T_R):
+    tL = np.sqrt(gammaL/np.pi/2)
+    tR = np.sqrt(gammaR/np.pi/2)
+
+    n, nleads = 4, 4 #two leads with spin
+    U = {(0,1,1,0):u_intra, (2,3,3,2):u_intra, (0,2,2,0):u_inter, (0,3,3,0):u_inter, (1,2,2,1):u_inter, (1,3,3,1):u_inter } #more coloumb within than between
+    tlst = {0:T_L, 1:T_L, 2:T_R, 3:T_R} #Temperatures
+
+
+    I = np.zeros((len(VBs),len(epsilons)))
+    I_var = np.zeros((len(VBs),len(epsilons)))
+    J_QH = np.zeros((len(VBs),len(epsilons)))
+    P = np.zeros((len(VBs),len(epsilons)))
+
+
+    for v_idx, vb in enumerate(VBs):
+        mu_L = -vb/2       
+        mu_R = vb/2        
+        for e_idx, eps in enumerate(epsilons):
+            if lmda == 1:
+                system = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps, (3,3):eps, (0,2):omega, (1,3):omega}, coulomb=U, nleads=nleads,
+                    mulst={0:mu_L, 1:mu_L, 2:mu_R, 3:mu_R}, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):0.9*lmda*tL, (1,3):0.9*lmda*tL, (2,0):0.9*lmda*tR, (3,1):0.9*lmda*tR},
+                    dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
+            else:
+                system = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps, (3,3):eps, (0,2):omega, (1,3):omega}, coulomb=U, nleads=nleads,
+                    mulst={0:mu_L, 1:mu_L, 2:mu_R, 3:mu_R}, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):lmda*tL, (1,3):lmda*tL, (2,0):lmda*tR, (3,1):lmda*tR},
+                    dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
+
+            system.solve()
+            i = system.current_noise[0]
+            i_var = system.current_noise[1]
+            j_qh = system.heat_current[0]+system.heat_current[1]
+            if i_var < 0 and np.abs(i_var) > 1e-16 and np.abs(i) > 1e-16:
+                warnings.warn(f"Warning! Negative noise! {i_var} for V_B: {vb} and epsilon: {eps}\n (I = {i}, J_QH = {j_qh})")
+            I[v_idx, e_idx] = i
+            I_var[v_idx, e_idx] = i_var
+            J_QH[v_idx, e_idx] = j_qh
+            P[v_idx, e_idx] = i*vb
+
+    return I, I_var, J_QH, P

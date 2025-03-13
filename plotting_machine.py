@@ -30,9 +30,6 @@ def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR, title):
     fig.suptitle(title, fontsize=16, fontweight='bold')
     plt.show()
 
-def plot_one(Y):
-    pass
-
 def plot_zoomed_out(epsilons, VBs, Y1, title1, Y2, title2, epsilons_zoom, VBs_zoom, Y1_zoom, Y2_zoom, suptitle):
 
     # Create Figure
@@ -79,4 +76,27 @@ def plot_zoomed_out(epsilons, VBs, Y1, title1, Y2, title2, epsilons_zoom, VBs_zo
     mark_inset(axes[1], axins, loc1=2, loc2=4, fc="none", ec="red")
 
     fig.suptitle(suptitle, fontsize=16, fontweight='bold')
+    plt.show()
+
+#I and I_var etc should be 1D-arrays
+def plot_inter(lamdas, I, I_var, P, J_QH, sigma, TUR, title):
+
+    def plot_single(fig, axes, i, j, Y, title):
+        axes[i,j].plot(lamdas, Y)
+        axes[i,j].set_title(title)
+        axes[i,j].set_xlabel('lambda')
+        axes[i,j].set_ylabel(title)
+
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(20, 8))
+
+    values = [I, I_var, P, J_QH, sigma, TUR]
+    titles = ['Current', 'Noise', 'P', 'Heat current', 'sigma', 'TUR']
+    plt_idx = 0
+    for i in range(0,2):
+        for j in range(0,3):
+            plot_single(fig, axes, i, j, values[plt_idx], titles[plt_idx])
+            plt_idx += 1
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.suptitle(title, fontsize=16, fontweight='bold')
     plt.show()
