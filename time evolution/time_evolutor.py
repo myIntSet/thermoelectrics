@@ -11,12 +11,6 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
 
     if T_L < T_R:
         raise SystemExit("Not my convention! (T_L < T_R)")
-    elif T_L > T_R:
-        T_COLD = T_R
-        T_HOT = T_L
-    #elif T_L == T_R:
-    #    raise SystemExit("Not a heat engine (T_L = T_R)")
-    #lägga till fler checkar här!
 
     mu_L = -V_B/2       
     mu_R = V_B/2        
@@ -51,7 +45,6 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     print('I_ss: ', I_ss)
     print('right lead? ', sys.current[2]+sys.current[3])
 
-    I_qmeq_tot = np.zeros((nleads,ti_array.shape[0]))
     J_QH_tot = np.zeros((nleads,ti_array.shape[0]))
     I = np.zeros((ti_array.shape[0]))
     I_var = np.zeros((ti_array.shape[0]))
@@ -67,7 +60,6 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
         
         # calculate current (also calculates energy and heat currents)
         sys.appr.generate_current() # calculates current both ways
-        I_qmeq_tot[:,i] = sys.current #for verification
         J_QH_tot[:,i] = sys.heat_current
         I[i] = sys.current_noise[0] 
         I_var[i] = sys.current_noise[1]
@@ -76,12 +68,15 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
 
     # sum up heat and QmeQ current at left lead   
     J_QH = J_QH_tot[0] + J_QH_tot[1]
-    I_qmeq = I_qmeq_tot[0] + I_qmeq_tot[1]
 
-    return sys, rho_ss, rho_t, I_ss, I_qmeq, J_QH, I, I_var
+    #Power
+    P = I*V_B
+
+    return sys, rho_ss, rho_t, I_ss, I, I_var, P, J_QH 
     
 
 def time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim):
+
     # calculate stationary state from left/right eigenvectors
     rho_ss = 1/np.dot((left_ev[:,0]),right_ev[:,0]) * np.dot(np.conjugate(left_ev[:,0]), initial) * right_ev[:,0]
 
