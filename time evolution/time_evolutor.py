@@ -5,6 +5,8 @@ import qmeq
 from scipy.linalg import eig, eigvals
 import numpy as np
 
+
+
 def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_L, T_R):
 
     if T_L < T_R:
@@ -12,8 +14,8 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     elif T_L > T_R:
         T_COLD = T_R
         T_HOT = T_L
-    elif T_L == T_R:
-        raise SystemExit("Not a heat engine (T_L = T_R)")
+    #elif T_L == T_R:
+    #    raise SystemExit("Not a heat engine (T_L = T_R)")
     #lägga till fler checkar här!
 
     mu_L = -V_B/2       
@@ -38,13 +40,16 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     sys.solve()
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
-
+    print('dim', dim)
+    
     rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
 
-    # PARTICLE CURRENT
+    # -----------------------------PARTICLE CURRENT-------------------------------------
 
-    # qmeq solution for stationary current 
-    I_ss = sys.current
+    # qmeq solution for stationary current (summed over left lead)
+    I_ss = sys.current[0]+sys.current[1]
+    print('I_ss: ', I_ss)
+    print('right lead? ', sys.current[2]+sys.current[3])
 
     I_qmeq_tot = np.zeros((nleads,ti_array.shape[0]))
     J_QH_tot = np.zeros((nleads,ti_array.shape[0]))
@@ -74,6 +79,7 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     I_qmeq = I_qmeq_tot[0] + I_qmeq_tot[1]
 
     return sys, rho_ss, rho_t, I_ss, I_qmeq, J_QH, I, I_var
+    
 
 def time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim):
     # calculate stationary state from left/right eigenvectors
@@ -118,6 +124,8 @@ def base_calculations(sys):
                 result[j,k] = result[j,k]/np.dot(np.conjugate(left_ev[:,j]),right_ev[:,k])
                 
     print(str(np.round(np.real(result),1)))
+
+    #print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
 
     return liouvillian, dim, eval_j, left_ev, right_ev
 
