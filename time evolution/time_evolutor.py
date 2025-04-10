@@ -30,7 +30,7 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
 
     sys = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps, (3,3):eps, (0,2):0*omega, (1,3):0*omega}, coulomb=U, nleads=nleads,
                     mulst=mulst, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):0.9*tL, (1,3):0.9*tL, (2,0):0.9*tR, (3,1):0.9*tR},
-                    dband=1e4, countingleads=[0,1], kerntype='pyLindblad')
+                    dband=1e4, countingleads=[0,1], kerntype='pyLindblad', itype=1)
     sys.solve()
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
