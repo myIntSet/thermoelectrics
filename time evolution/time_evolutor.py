@@ -5,8 +5,74 @@ import qmeq
 from scipy.linalg import eig, eigvals
 import numpy as np
 
+#Without spin, Gamma' = 
+def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, delta_gamma, delta_epsilon):
+
+    if T_L < T_R:
+        raise SystemExit("Not my convention! (T_L < T_R)")
+    
+    mu_L = V_B/2       
+    mu_R = -V_B/2
+    print('~OBS! Opposite VB-mu-convention!~')
+    gamma1 = gamma-delta_gamma
+    gamma2 = gamma+delta_gamma
+
+    t1 = np.sqrt(gamma1/np.pi/2)
+    t2 = np.sqrt(gamma2/np.pi/2)
+
+    n, nleads = 2, 2 #two leads with spin
+    U = {(0,1,1,0):u} 
+    mulst = {0:mu_L, 1:mu_R}
+    tlst = {0:T_L, 1:T_R}
+
+    sys = qmeq.Builder(nsingle=n, hsingle={(0,0):eps-delta_epsilon, (1,1):eps+delta_epsilon, (0,1):omega}, coulomb=U, nleads=nleads,
+                mulst=mulst, tlst=tlst, tleads={(0, 0):t1, (1, 1):t1, (0, 1):t2, (1, 0):t2},
+                dband=1e4, countingleads=[0], kerntype='pyLindblad', itype=1)
+    sys.solve()
+
+    liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
+    print('eigenvalues:', eval_j)
+    print('dim', dim)
+
+    rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
+
+    # -----------------------------PARTICLE CURRENT-------------------------------------
+
+    # qmeq solution for stationary current (at left lead)
+    I_ss = sys.current[0]
+    print('I_ss: ', I_ss)
+    print('right lead? ', sys.current[1])
+
+    J_QH_tot = np.zeros((nleads,ti_array.shape[0]))
+    I = np.zeros((ti_array.shape[0]))
+    I_var = np.zeros((ti_array.shape[0]))
 
 
+    for i in range(ti_array.shape[0]):
+        
+        # reset current    
+        sys.current[:] = np.zeros(nleads)
+        
+        # set stationary state to rho_t value
+        sys.phi0[:] = np.real(rho_t[:,i])
+        
+        # calculate current (also calculates energy and heat currents)
+        sys.appr.generate_current() # calculates current both ways
+        J_QH_tot[:,i] = sys.heat_current
+        I[i] = sys.current_noise[0] 
+        I_var[i] = sys.current_noise[1]
+        
+        #--------------------------------------------
+
+    # take QmeQ heat current at left lead   
+    J_QH = J_QH_tot[0]
+
+    #Power
+    P = I*V_B
+
+    return sys, rho_ss, rho_t, I_ss, I, I_var, P, J_QH 
+
+#with spin, Gamma' = 0.9*Gamma
 def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL, gammaR, T_L, T_R):
 
     if T_L < T_R:
@@ -34,6 +100,7 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     sys.solve()
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
+    print('eigenvalues:', eval_j)
     print('dim', dim)
     
     rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
@@ -120,7 +187,7 @@ def base_calculations(sys):
                 
     print(str(np.round(np.real(result),1)))
 
-    #print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
+    print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
 
     return liouvillian, dim, eval_j, left_ev, right_ev
 
