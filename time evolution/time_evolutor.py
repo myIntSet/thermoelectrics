@@ -11,9 +11,9 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
     if T_L < T_R:
         raise SystemExit("Not my convention! (T_L < T_R)")
     
-    mu_L = V_B/2       
-    mu_R = -V_B/2
-    print('~OBS! Opposite VB-mu-convention!~')
+    mu_L = -V_B/2       
+    mu_R = V_B/2
+    #print('~OBS! Opposite VB-mu-convention!~')
     gamma1 = gamma-delta_gamma
     gamma2 = gamma+delta_gamma
 
@@ -32,6 +32,9 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
     print('eigenvalues:', eval_j)
+    quot = np.real(eval_j[2])/np.real(eval_j[1])
+    print("\n~~ Re(lambda3)/re(lambda2): ~~")
+    print(f"{np.real(eval_j[3])}/{np.real(eval_j[1])}={quot}")
     print('dim', dim)
 
     rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
