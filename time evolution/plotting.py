@@ -18,6 +18,12 @@ def plot_qd_level(epsilons, eps, ax, title):
     ax.axhline(eps)
     ax.set_title(title)
 
+def plot_double_qd_leves(epsilons, eps1, eps2, ax, title):
+    ax.plot(epsilons, epsilons, color='white')
+    ax.axhline(eps1, xmin=-0 , xmax=0.5 )
+    ax.axhline(eps2, xmin=0.5 , xmax=1 )
+    ax.set_title(title)
+
 def plot_rho(ti_array, rho_t, sys, eps, V_B, T_L, T_R):
     epsilons = np.linspace(-25,25,100)
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(18, 6), gridspec_kw={'width_ratios': [10, 3, 2, 3]}) 

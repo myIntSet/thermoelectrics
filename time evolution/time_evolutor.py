@@ -13,7 +13,7 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
     
     mu_L = -V_B/2       
     mu_R = V_B/2
-    #print('~OBS! Opposite VB-mu-convention!~')
+
     gamma1 = gamma-delta_gamma
     gamma2 = gamma+delta_gamma
 
@@ -55,6 +55,8 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
         
         # reset current    
         sys.current[:] = np.zeros(nleads)
+        sys.energy_current[:] = np.zeros(nleads)
+        
         
         # set stationary state to rho_t value
         sys.phi0[:] = np.real(rho_t[:,i])
@@ -64,11 +66,15 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
         J_QH_tot[:,i] = sys.heat_current
         I[i] = sys.current_noise[0] 
         I_var[i] = sys.current_noise[1]
+        if i == ti_array.shape[0]-1:
+            print('Current: ', sys.current_noise[0])
+            print('heat current: ', sys.heat_current)
         
         #--------------------------------------------
 
     # take QmeQ heat current at left lead   
     J_QH = J_QH_tot[0]
+    print('J_QH: ', J_QH)
 
     #Power
     P = I*V_B
@@ -124,6 +130,7 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
         
         # reset current    
         sys.current[:] = np.zeros(nleads)
+        sys.energy_current[:] = np.zeros(nleads)
         
         # set stationary state to rho_t value
         sys.phi0[:] = np.real(rho_t[:,i])
