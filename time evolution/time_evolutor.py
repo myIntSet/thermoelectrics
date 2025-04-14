@@ -6,13 +6,17 @@ from scipy.linalg import eig, eigvals
 import numpy as np
 
 #Without spin, Gamma' = 
-def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, delta_gamma, delta_epsilon):
+def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, delta_gamma, delta_epsilon, reverse_mu=False):
 
     if T_L < T_R:
         raise SystemExit("Not my convention! (T_L < T_R)")
-    
-    mu_L = -V_B/2       
-    mu_R = V_B/2
+    if reverse_mu:
+        mu_L = V_B/2       
+        mu_R = -V_B/2
+        print("OBS REVERSED MU CONVENTION!!")
+    else:
+        mu_L = -V_B/2       
+        mu_R = V_B/2
 
     gamma1 = gamma-delta_gamma
     gamma2 = gamma+delta_gamma
@@ -66,9 +70,6 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
         J_QH_tot[:,i] = sys.heat_current
         I[i] = sys.current_noise[0] 
         I_var[i] = sys.current_noise[1]
-        if i == ti_array.shape[0]-1:
-            print('Current: ', sys.current_noise[0])
-            print('heat current: ', sys.heat_current)
         
         #--------------------------------------------
 
@@ -131,6 +132,7 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
         # reset current    
         sys.current[:] = np.zeros(nleads)
         sys.energy_current[:] = np.zeros(nleads)
+        sys.heat_current[:] = np.zeros(nleads)
         
         # set stationary state to rho_t value
         sys.phi0[:] = np.real(rho_t[:,i])
@@ -200,6 +202,33 @@ def base_calculations(sys):
     print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
 
     return liouvillian, dim, eval_j, left_ev, right_ev
+
+def parallel_liouvillian(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, reverse_mu=False):
+
+    if T_L < T_R:
+        raise SystemExit("Not my convention! (T_L < T_R)")
+    if reverse_mu:
+        mu_L = V_B/2       
+        mu_R = -V_B/2
+        print("OBS REVERSED MU CONVENTION!!")
+    else:
+        mu_L = -V_B/2       
+        mu_R = V_B/2
+
+
+    t = np.sqrt(gamma/np.pi/2)
+
+    n, nleads = 2, 2 #two leads with spin
+    U = {(0,1,1,0):u} 
+    mulst = {0:mu_L, 1:mu_R}
+    tlst = {0:T_L, 1:T_R}
+
+    sys = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (0,1):omega}, coulomb=U, nleads=nleads,
+                mulst=mulst, tlst=tlst, tleads={(0, 0):t, (1, 1):t, (0, 1):t, (1, 0):t},
+                dband=1e4, countingleads=[0], kerntype='pyLindblad', itype=1)
+    sys.solve()
+
+    return base_calculations(sys)
 
 
 def calculate_single_res(initial, ti_array, eps, mu_L, mu_R, T_L, T_R, gammaL, gammaR):
