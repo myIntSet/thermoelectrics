@@ -6,7 +6,7 @@ from scipy.linalg import eig, eigvals
 import numpy as np
 
 #Without spin, Gamma' = 
-def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, delta_gamma, delta_epsilon, reverse_mu=False):
+def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R, delta_gamma, delta_epsilon, reverse_mu=False, just_lio=False):
 
     if T_L < T_R:
         raise SystemExit("Not my convention! (T_L < T_R)")
@@ -24,7 +24,7 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
     t1 = np.sqrt(gamma1/np.pi/2)
     t2 = np.sqrt(gamma2/np.pi/2)
 
-    n, nleads = 2, 2 #two leads with spin
+    n, nleads = 2, 2 #two leads without spin
     U = {(0,1,1,0):u} 
     mulst = {0:mu_L, 1:mu_R}
     tlst = {0:T_L, 1:T_R}
@@ -32,10 +32,17 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
     sys = qmeq.Builder(nsingle=n, hsingle={(0,0):eps-delta_epsilon, (1,1):eps+delta_epsilon, (0,1):omega}, coulomb=U, nleads=nleads,
                 mulst=mulst, tlst=tlst, tleads={(0, 0):t1, (1, 1):t1, (0, 1):t2, (1, 0):t2},
                 dband=1e4, countingleads=[0], kerntype='pyLindblad', itype=1)
+    # make sure the kernel does not get overwritten
+    sys.make_kern_copy = True
     sys.solve()
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
+
+    if just_lio:
+        return sys, liouvillian, dim, eval_j, left_ev, right_ev, nleads
+
     print('eigenvalues:', eval_j)
+
     quot = np.real(eval_j[2])/np.real(eval_j[1])
     print("\n~~ Re(lambda3)/re(lambda2): ~~")
     print(f"{np.real(eval_j[3])}/{np.real(eval_j[1])}={quot}")
@@ -107,11 +114,16 @@ def calculate_meta(initial, ti_array, eps, omega, u_intra, u_inter, V_B, gammaL,
     sys = qmeq.Builder(nsingle=n, hsingle={(0,0):eps, (1,1):eps, (2,2):eps, (3,3):eps, (0,2):0*omega, (1,3):0*omega}, coulomb=U, nleads=nleads,
                     mulst=mulst, tlst=tlst, tleads={(0, 0):tL, (1, 1):tL, (2, 2):tR, (3, 3):tR, (0,2):0.9*tL, (1,3):0.9*tL, (2,0):0.9*tR, (3,1):0.9*tR},
                     dband=1e4, countingleads=[0,1], kerntype='pyLindblad', itype=1)
+    
+    # make sure the kernel does not get overwritten
+    sys.make_kern_copy = True
+
     sys.solve()
 
     liouvillian, dim, eval_j, left_ev, right_ev = base_calculations(sys)
+
     print('eigenvalues:', eval_j)
-    print('dim', dim)
+    #print('dim', dim)
     
     rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
 
