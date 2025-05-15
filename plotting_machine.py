@@ -3,6 +3,26 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 
+def plot_single_report(plt, epsilons, VBs, Y, title, vmin=None, vmax=None):
+    text_font = 35
+    plt.rcParams.update({'font.size': 20})  # Applies globally
+    plt.figure(figsize=(8, 5))  # Optional: set figure size
+    if title == r'$\Phi$ < 2':
+        Y = np.ma.masked_where(Y >= 2, Y)
+    elif title == 'P > 0':
+        Y = np.ma.masked_where(Y <= 0, Y)
+    if vmin and vmax:
+        img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower', vmin=vmin, vmax=vmax)
+    else:
+        img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower')
+    plt.colorbar(img)
+    actual_vmin, actual_vmax = img.get_clim()
+    print('actual_vmin,', actual_vmin, actual_vmax)
+    plt.title(title, fontsize=text_font)
+    plt.xlabel(r'$\varepsilon$', fontsize=text_font)
+    plt.ylabel('V', fontsize=text_font, labelpad=0)
+    plt.show()
+
 def plot_all(epsilons, VBs, I, I_var, P, J_QH, sigma, TUR, title):
 
     def plot_single(fig, axes, i, j, Y, title):
