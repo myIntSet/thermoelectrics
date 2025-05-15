@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 
-def plot_single_report(plt, epsilons, VBs, Y, title, vmin=None, vmax=None):
+def plot_single_report(plt, epsilons, VBs, Y, title):
     text_font = 35
     plt.rcParams.update({'font.size': 20})  # Applies globally
     plt.figure(figsize=(8, 5))  # Optional: set figure size
@@ -11,10 +11,7 @@ def plot_single_report(plt, epsilons, VBs, Y, title, vmin=None, vmax=None):
         Y = np.ma.masked_where(Y >= 2, Y)
     elif title == 'P > 0':
         Y = np.ma.masked_where(Y <= 0, Y)
-    if vmin and vmax:
-        img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower', vmin=vmin, vmax=vmax)
-    else:
-        img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower')
+    img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower')
     plt.colorbar(img)
     actual_vmin, actual_vmax = img.get_clim()
     print('actual_vmin,', actual_vmin, actual_vmax)
