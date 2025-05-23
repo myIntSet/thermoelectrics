@@ -41,12 +41,12 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
     if just_lio:
         return sys, liouvillian, dim, eval_j, left_ev, right_ev, nleads
 
-    print('eigenvalues:', eval_j)
+    #print('eigenvalues:', eval_j)
 
     quot = np.real(eval_j[2])/np.real(eval_j[1])
     print("\n~~ Re(lambda3)/re(lambda2): ~~")
     print(f"{np.real(eval_j[3])}/{np.real(eval_j[1])}={quot}")
-    print('dim', dim)
+    #print('dim', dim)
 
     rho_ss, rho_t = time_evolution(left_ev, right_ev, eval_j, initial, liouvillian, ti_array, dim)
 
@@ -54,8 +54,8 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
 
     # qmeq solution for stationary current (at left lead)
     I_ss = sys.current[0]
-    print('I_ss: ', I_ss)
-    print('right lead? ', sys.current[1])
+    #print('I_ss: ', I_ss)
+    #print('right lead? ', sys.current[1])
 
     J_QH_tot = np.zeros((nleads,ti_array.shape[0]))
     I = np.zeros((ti_array.shape[0]))
@@ -82,7 +82,7 @@ def calculate_paper_meta(initial, ti_array, eps, omega, u, V_B, gamma, T_L, T_R,
 
     # take QmeQ heat current at left lead   
     J_QH = J_QH_tot[0]
-    print('J_QH: ', J_QH)
+    #print('J_QH: ', J_QH)
 
     #Power
     P = I*V_B
@@ -209,9 +209,9 @@ def base_calculations(sys):
             if j == k:
                 result[j,k] = result[j,k]/np.dot(np.conjugate(left_ev[:,j]),right_ev[:,k])
                 
-    print(str(np.round(np.real(result),1)))
+    #print(str(np.round(np.real(result),1)))
 
-    print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
+    #print('check l1 is identity:', np.real(np.round(left_ev[:,0],3)))
 
     return liouvillian, dim, eval_j, left_ev, right_ev
 
