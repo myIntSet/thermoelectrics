@@ -7,9 +7,9 @@ def plot_single_report(plt, epsilons, VBs, Y, title, cmap, vmin=None, vmax=None,
     text_font = 35
     plt.rcParams.update({'font.size': 20})  # Applies globally
     plt.figure(figsize=(8, 5))  # Optional: set figure size
-    if title == r'$\Phi$ < 2' or plotting_TURs:
+    if title == r'$\Phi$' or plotting_TURs:
         Y = np.ma.masked_where(Y >= 2, Y)
-    elif title == 'P > 0':
+    elif title == 'P':
         Y = np.ma.masked_where(Y <= 0, Y)
     img = plt.imshow(Y, extent=[epsilons[0], epsilons[-1], VBs[0], VBs[-1]], aspect='auto', origin='lower', cmap=cmap, vmin=vmin, vmax=vmax)
     cbar = plt.colorbar(img)
